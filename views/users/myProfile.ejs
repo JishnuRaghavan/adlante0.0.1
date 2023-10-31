@@ -1,4 +1,6 @@
 <%- include('../layouts/header.ejs') -%>
+
+
 <header class="header_area">
   <div class="top_menu">
     <div class="container">
@@ -157,6 +159,22 @@
                   <i class="ti-heart" aria-hidden="true"></i>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <div class="dropdown">
+                    <a href="#" class="icons dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      <i class="ti-user" aria-hidden="true"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                      <a class="dropdown-item" href="myProfile">My Profile</a>
+                      <a class="dropdown-item" href="#">Orders</a>
+                      <a class="dropdown-item" href="#">Wishlist</a>
+                      <a class="dropdown-item" href="#">Coupons</a>
+                      <a class="dropdown-item" href="#">Notifications</a>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="/logout">Logout</a>
+                    </div>
+                  </div>
+                </li>
               </ul>
             </div>
           </div>
@@ -211,43 +229,47 @@
                     <strong>Joined On:</strong> <%= user.joinedDate %>
                   </div>
                   <button class="btn btn-primary">Edit Profile</button>
+                  <button><a href="/loadChangePassword">change password</a></button>
                   <% } %>
                 </div>
               </div>
             </div>
           </div>
           <div class="tab-pane fade" id="orders">
-            <h4>Orders</h4>
-            <div class="table_page table-responsive">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Order</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>1</td>
-                    <td>May 10, 2018</td>
-                    <td><span class="success">Completed</span></td>
-                    <td>$25.00 for 1 item </td>
-                    <td><a href="cart.html" class="view">view</a></td>
-                  </tr>
-                  <tr>
-                    <td>2</td>
-                    <td>May 10, 2018</td>
-                    <td>Processing</td>
-                    <td>$17.00 for 1 item </td>
-                    <td><a href="cart.html" class="view">view</a></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <% if (typeof orders !== 'undefined' && orders.length > 0) { %>
+              <h4>Orders</h4>
+              <div class="table_page table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Order</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Total</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <% orders.forEach((order) => { %>
+                    <tbody>
+                      <tr>
+                        <td><%= order.orderId %></td>
+                        <td><%= order.date.toString().substring(0,16) %></td>
+                        <td><span style="background-color: white;" class="success"><%= order.orderStatus %></span></td>
+                        <td>$<%= order.subtotal %> for <%= order.items.length %> items</td>
+                        <form action="/orderDetails" method="post">
+                          <input type="hidden" name="orderId" value="<%= order.orderId %>">
+                          <td><a href="" class="view"><button type="submit" style="background-color: transparent;">view</button></a></td>
+                        </form>
+                      </tr>
+                    </tbody>
+                  <% }) %>
+                </table>
+              </div>
+            <% } else { %>
+              <h1>Nothing to show</h1>
+            <% } %>
           </div>
+                  
           <div class="tab-pane fade" id="downloads">
             <h4>Downloads</h4>
             <div class="table_page table-responsive">

@@ -4,6 +4,9 @@ const User  = require('../models/userModel');
 const bcrypt= require('bcrypt');
 const session = require('express-session');
 const Category= require('../models/categoryModel');
+const Order = require('../models/orderModel');
+const Coupon  = require('../models/couponModel');
+const Banner  = require('../models/bannerModel');
 
 const securePassword  = async(password)=>{
 
@@ -98,15 +101,15 @@ const addCustomer = async(req,res)=>{
   try {
     
     const { name,email,mobile,joinedDate }  = req.body;
-    console.log(email);
-    const UserData  = await User.findOne({email:email});
+    const updatedEmail  = email.toLowerCase()
+    const UserData  = await User.findOne({email:updatedEmail});
     if(UserData){
       res.render('ecommerce-customer',{customeradd:"user already exists"});
     }
     else{
       const user  = new User({
         name:name,
-        email:email,
+        email:updatedEmail,
         mobile:mobile,
         password:"12345",
         is_verified:0,
@@ -131,14 +134,27 @@ const blockUser  = async(req,res)=>{
 
   try {
     
-    const { selectedEmails } = req.body;
-    console.log(selectedEmails);
+    const { selectedEmails } = req.body
 
     const updated = await User.updateMany({email:{$in:selectedEmails}},{$set:{active:"blocked"}});
     console.log("data updated");
     res.render('ecommerce-customer',{customeradd:"user blocked"});
 
     
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const loadProductList = async(req,res)=>{
+
+  try {
+    
+    const products = await Product.find();
+    console.log(products);
+    res.render('productList',{products:products});
 
   } catch (error) {
     console.log(error.message);
@@ -167,8 +183,9 @@ const productEditLoad = async(req,res)=>{
   try {
     
     const categories  = await Category.find();
+    const currentCategory = categories[0];
     const productData = await Product.find();
-    res.render('productEdit',{products:productData,categories:categories});
+    res.render('productEdit',{alertMessage:"",products:productData,categories:categories,currentCategory:currentCategory});
 
   } catch (error) {
     console.log(error.message);
@@ -181,9 +198,8 @@ const addProduct  = async(req,res)=>{
   try {
     
     console.log(req.body);
-    const {title,description,brand,category,subcategory,gender,tag,size,width,height,depth,weight,quality,freshness,packeting,regularprice,saleprice,date, } = req.body;
+    const {stock,title,description,brand,category,subcategory,gender,tag,size,width,height,depth,weight,quality,freshness,packeting,regularprice,saleprice,date, } = req.body;
 
-    const stock = req.body.stock  === 'on';
     const publish= req.body.publish === 'on';
     const priceincludestaxes  = req.body.priceincludestaxes === 'on';
 
@@ -224,13 +240,12 @@ const addProduct  = async(req,res)=>{
 
       const productDataAdded  = await product.save();
       if(productDataAdded){
-        res.redirect('/admin/productEdit');
+        res.render('productEdit',{alertMessage:"successfull"});
       }
       else{
         res.render('productEdit')
       }
     }
-    
 
   } catch (error) {
     console.log(error.message);
@@ -238,81 +253,406 @@ const addProduct  = async(req,res)=>{
 
 }
 
-const addCategory = async (req, res) => {
+const categorylistLoad  = async(req,res)=>{
+
   try {
-    const { maincategory } = req.body;
-    console.log(maincategory);
+    
+    const categories  = await Category.find();
+    res.render('categoryList',{categories:categories});
+    delete req.session.maincategory;
 
-    // Check if a category with the same maincategory already exists
-    const categoryData = await Category.findOne({ maincategory: maincategory });
-    console.log(categoryData);
-
-    console.log(1);
-    if (!categoryData) {
-
-      console.log(2);
-      const categoryDataAdded = new Category({
-        maincategory: maincategory,
-        subcategory: []
-      });
-
-      console.log('Data being saved:', categoryDataAdded);
-
-const categoryDataUpdated = await categoryDataAdded.save();
-
-
-      console.log('new added');
-      const categoryDataUpdated1 = await categoryDataAdded.save();
-      console.log('6');
-      if (categoryDataUpdated1) {
-        res.render('productEdit', { categorymessage: "Category added successfully" });
-      }
-      
-    } else {
-      res.render('productEdit', { categorymessage: "Category already exists" });
-    }
   } catch (error) {
     console.log(error.message);
   }
-};
 
+}
 
-const addSubCategory = async (req, res) => {
+const addCategoryload = async(req,res)=>{
 
   try {
-    console.log(3);
-    const { maincategory,subcategory } = req.body;
-    console.log(maincategory);
     
-    console.log(subcategory);
+    const categories  = await Category.find();
+    res.render('addCategorypage',{categories:categories,categoryMessage:""});
 
-    // Find the category by its ID
-    const categoryfound = await Category.findOne({maincategory:maincategory});
+  } catch (error) {
+    console.log(error.message);
+  }
 
-    if (!categoryfound) {
-      console.log("category not found");
-      res.render('productEdit',{categorymessage:"already exist"});
-    }
-    else{
-      const subcategoryfound  = await Category.findOne({maincategory:maincategory,subcategory:{$elemMatch:{subcategory:subcategory}}});
+}
 
-      if(subcategoryfound){
-        res.render('productEdit',{categoryfound:"sub category already exist"});
+const addCategoryPage = async(req,res)=>{
+
+  try {
+    
+    const { maincategory,description,visibility } = req.body;
+    const categories  = await Category.find();
+    const category  = await Category.findOne({maincategory:new RegExp(maincategory,'i')});
+
+    if(!category){
+      const newCategory = new Category({
+        maincategory:maincategory,
+        description:description,
+        visibility:visibility
+      })
+
+      const categoryUpdated = await newCategory.save();
+
+      if(categoryUpdated){
+        res.redirect('/admin/categoryList');
       }
       else{
-        categoryfound.subcategory.push({ subcategory: subcategory });
-        const updatedCategory = await categoryfound.save();
-
-        console.log('sub category added');
-        res.render('productEdit',{categorymessage:"sub category added"});
+        res.render('addCategorypage',{alert:"no category added"});
       }
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-};
+    else{
+      res.render('addCategorypage',{categories:categories,categoryMessage:"item already exists"});
+    }
 
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+
+const subcategoryListLoad = async (req, res) => {
+  try {
+    const { mainCategory } = req.body;
+    req.session.maincategory = mainCategory;
+
+    const category = await Category.findOne({ maincategory: mainCategory });
+    res.render('subcategoryList', { mainCategory: category });
+  } catch (error) {
+    console.error(error.message);
+    res.render('errorPage', { error: 'An error occurred while loading subcategory list' });
+  }
+
+}
+
+
+const editSubcategoryLoad = async(req,res)=>{
+
+  try {
+    
+    const { subcategory}  = req.body;
+    res.render('editSubcategoryPage');
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addSubcategoryPage = async (req, res) => {
+  try {
+    const { subcategoryName, description, visibility } = req.body;
+    const mainCategory = req.session.maincategory;
+
+    const category = await Category.findOne({ maincategory: mainCategory });
+
+    const subcategoryExist = category.subcategory.some((subcategory) => subcategory.name === new RegExp(subcategoryName,'i'));
+    if (!subcategoryExist) {
+      category.subcategory.push({
+        name: subcategoryName,
+        description: description,
+        visibility: visibility,
+      });
+
+      await category.save(); // Save changes to the database
+      console.log(5);
+      res.redirect('/admin/subcategoryList');
+      console.log(6);
+    } else {
+      res.redirect('/admin/subcategoryList');
+    }
+  } catch (error) {
+    console.error(error.message);
+    res.render('subcategoryList', { alert: 'Error adding subcategory' });
+  }
+
+}
+
+const updatedSubcategoryList  = async(req,res)=>{
+
+  try {
+    
+    const mainCategory  = req.session.maincategory;
+    const category  = await Category.findOne({maincategory:mainCategory});
+    res.render('subcategoryList',{mainCategory:category});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addSubcategoryLoad  = async(req,res)=>{
+
+  try {
+    
+    res.render('addSubcategoryPage');
+
+  } catch (error) {
+    console.log(error.message);
+  }
+  
+}
+
+const orderListLoad = async(req,res)=>{
+
+  try {
+    
+    const orders = await Order.find();
+    res.render('orderList',{orders:orders});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const placeOrder  = async(req,res)=>{
+
+  try {
+    
+    const { selectedOrders }  = req.body;
+    const orderUpdated  = await Order.updateMany({orderId:{$in:selectedOrders}},{$set:{orderStatus:'order placed'}});
+    if(orderUpdated.modifiedCount === 1){
+      res.render('orderList',{orerMessage:"order status updated"});
+    }
+
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const shipOrder = async(req,res)=>{
+  console.log('shipping');
+
+  try {
+    
+    const { selectedOrders }  = req.body;
+    const orderUpdated  = await Order.updateMany({orderId:{$in:selectedOrders}},{$set:{orderStatus:'order has been shipped'}});
+    if(orderUpdated.modifiedCount === 1){
+      res.render('orderList',{orderMessage:"order status updated"});
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const deliverOrder  = async(req,res)=>{
+
+  try {
+    
+    const { selectedOrders }  = req.body;
+    const orderUpdated  = await Order.updateMany({orderId:{$in:selectedOrders}},{$set:{orderStatus:"order has been delivered"}});
+    if(orderUpdated.modifiedCount === 1){
+      res.render('orderList',{orderMessage:"order status updated"});
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const editProductLoad = async(req,res)=>{
+
+  try {
+
+    const categories  = await Category.find();
+    const { productId } = req.body;
+    const product = await Product.findById({_id:productId});
+    res.render('editProduct',{product:product,categories:categories});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addCouponLoad  = async(req,res)=>{
+
+  try {
+    
+    res.render('addCoupon');
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addCoupon = async(req,res)=>{
+
+  try {
+    
+    const { code, type, discountValue, usageLimit, status, startDate, endDate } =  req.body;
+    const couponExist = await Coupon.findOne({code:code});
+    console.log(code);
+    console.log(type)
+    console.log(discountValue);
+    console.log(usageLimit);
+    console.log(status);
+    console.log(startDate);
+    console.log(endDate);
+
+
+    if(!couponExist){
+      const newCoupon = new Coupon({
+        code:code,
+        type:type,
+        discountValue:discountValue,
+        usageLimit:usageLimit,
+        status:status,
+        startDate:startDate,
+        endDate:endDate
+      })
+
+      const couponSaved = newCoupon.save();
+
+      if(couponSaved){
+        res.render('addCoupon',{alertMessage:"new coupon added"});
+      }
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const couponListLoad  = async(req,res)=>{
+
+  try {
+    
+    const coupons = await Coupon.find();
+    console.log(coupons);
+    res.render('couponList',{coupons:coupons});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const bannerManagementLoad  = async(req,res)=>{
+
+  try {
+    
+    const banner = await Banner.findOne();
+    res.render('bannerManagementPage',{banner:banner});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addCheckoutBanner = async(req,res)=>{
+
+  try {
+    
+    const checkoutBannerImage = req.file.filename;
+    
+    const banner  = await Banner.findOne();
+    
+    if(!banner){
+      const newBanner = new Banner({checkoutBannerImage});
+      await newBanner.save();
+    }
+    else{
+      banner.checkoutBannerImage  = checkoutBannerImage;
+      await banner.save();
+    }
+
+    res.render('bannerManagementPage',{banner:banner,message:"checkout banner added successfully"});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addShopBanner = async(req,res)=>{
+
+  try {
+    
+    const shopBannerImage = req.file.filename;
+    
+    const banner  = await Banner.findOne();
+    
+    if(!banner){
+      const newBanner = new Banner({shopBannerImage});
+      await newBanner.save();
+    }
+    else{
+      banner.shopBannerImage  = shopBannerImage;
+      await banner.save();
+    }
+
+    res.render('bannerManagementPage',{banner:banner,message:"checkout banner added successfully"});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addProductDetailBanner = async(req,res)=>{
+
+  try {
+    
+    const singleProductBannerImage = req.file.filename;
+    
+    const banner  = await Banner.findOne();
+    
+    if(!banner){
+      const newBanner = new Banner({singleProductBannerImage});
+      await newBanner.save();
+    }
+    else{
+      banner.singleProductBannerImage  = singleProductBannerImage;
+      await banner.save();
+    }
+
+    res.render('bannerManagementPage',{banner:banner,message:"checkout banner added successfully"});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const addCartBanner = async(req,res)=>{
+
+  try {
+    
+    const cartPageBannerImage = req.file.filename;
+    
+    const banner  = await Banner.findOne();
+    
+    if(!banner){
+      const newBanner = new Banner({cartPageBannerImage});
+      await newBanner.save();
+    }
+    else{
+      banner.cartPageBannerImage  = cartPageBannerImage;
+      await banner.save();
+    }
+
+    res.render('bannerManagementPage',{banner:banner,message:"checkout banner added successfully"});
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
 
 module.exports  = {
   loadLogin,
@@ -323,8 +663,28 @@ module.exports  = {
   addCustomer,
   blockUser,
   unblockUser,
+  loadProductList,
   productEditLoad,
   addProduct,
-  addCategory,
-  addSubCategory
+  categorylistLoad,
+  addCategoryload,
+  addCategoryPage,
+  subcategoryListLoad,
+  addSubcategoryLoad,
+  addSubcategoryPage,
+  editSubcategoryLoad,
+  updatedSubcategoryList,
+  orderListLoad,
+  placeOrder,
+  shipOrder,
+  deliverOrder,
+  editProductLoad,
+  addCouponLoad,
+  addCoupon,
+  couponListLoad,
+  bannerManagementLoad,
+  addCheckoutBanner,
+  addShopBanner,
+  addProductDetailBanner,
+  addCartBanner,
 }

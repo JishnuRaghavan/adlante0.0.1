@@ -60,17 +60,28 @@ user_route.post('/addaddress',userController.addAddress);
 user_route.post('/editaddress',userController.editAddress);
 user_route.post('/deleteAddress',userController.deleteAddress);
 user_route.post('/makeDefaultAddress',userController.makeDefaultAddress);
+user_route.get('/loadChangePassword',userController.loadChangePassword);
+user_route.post('/changePassword',userController.changePassword);
+user_route.post('/newPassword',userController.newPassword);
 
 user_route.post('/productDetails',userController.productDetails);
 user_route.get('/loadProductDetails',userController.loadProductDetails);
 user_route.post('/addToCart',userController.addToCart);
 user_route.get('/cartPage',userController.loadCartPage);
 user_route.post('/updateCart',userController.updateCart);
+user_route.post('/applyCoupon',userController.applyCoupon);
 user_route.post('/deleteFromCart',userController.deleteFromCart);
 
 user_route.get('/logout',userController.logout);
 user_route.post('/proceedToCheckout',userController.proceedToCheckout);
+user_route.post('/confirmOrder',userController.confirmOrder);
+user_route.post('/updateOrderPaymentSuccess',userController.updateOrderPaymentSuccess);
+user_route.post('/updateOrderPaymentFailure',userController.updateOrderPaymentFailure);
+user_route.post('/orderDetails',userController.orderDetails);
+user_route.post('/cancelOrder',userController.cancelOrder);
+user_route.get('/shop',cpupload,upload.single('shopBannerImage'),authentication.isLoggedin,userController.loadShop);
+user_route.post('/searchProduct',userController.searchProduct);
+user_route.post('/applyPriceFilter', userController.applyPriceFilter);
 
-user_route.get('/shop',cpupload,authentication.isLoggedin,userController.loadShop);
 
 module.exports  = user_route;

@@ -2,9 +2,17 @@ const mongoose  = require('mongoose');
 
 
 const subcategorySchema = new mongoose.Schema({
-  subcategory:{
+  name:{
     type:String,
     required:true
+  },
+  description:{
+    type:String,
+    default:""
+  },
+  visibility:{
+    type:String,
+    default:"visible"
   }
 })
 
@@ -14,7 +22,15 @@ const categorySchema  = new mongoose.Schema({
     type:String,
     required:true,
   },
-  subcategory:[subcategorySchema]
+  subcategory:[subcategorySchema],
+  description:{
+    type:String,
+    default:""
+  },
+  visibility:{
+    type:String,
+    default:"visible"
+  }
 
 });
 

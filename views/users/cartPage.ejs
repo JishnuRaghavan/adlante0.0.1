@@ -63,38 +63,10 @@
                 <div class="col-lg-7 pr-0">
                   <ul class="nav navbar-nav center_nav pull-right">
                     <li class="nav-item">
-                      <a class="nav-link" href="index.html">Home</a>
+                      <a class="nav-link" href="homepage">Home</a>
                     </li>
-                    <li class="nav-item active submenu dropdown">
-                      <a
-                        href="#"
-                        class="nav-link dropdown-toggle"
-                        data-toggle="dropdown"
-                        role="button"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        >Shop</a
-                      >
-                      <ul class="dropdown-menu">
-                        <li class="nav-item">
-                          <a class="nav-link" href="category.html"
-                            >Shop Category</a
-                          >
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="single-product.html"
-                            >Product Details</a
-                          >
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="checkout.html"
-                            >Product Checkout</a
-                          >
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link" href="cart.html">Shopping Cart</a>
-                        </li>
-                      </ul>
+                    <li class="nav-item">
+                      <a class="nav-link" href="shop">Shop</a>
                     </li>
                     <li class="nav-item submenu dropdown">
                       <a
@@ -117,16 +89,6 @@
                         </li>
                       </ul>
                     </li>
-                    <li class="nav-item submenu dropdown">
-                      <a
-                        href="#"
-                        class="nav-link dropdown-toggle"
-                        data-toggle="dropdown"
-                        role="button"
-                        aria-haspopup="true"
-                        aria-expanded="false"
-                        >Pages</a
-                      >
                       <ul class="dropdown-menu">
                         <li class="nav-item">
                           <a class="nav-link" href="tracking.html">Tracking</a>
@@ -149,23 +111,26 @@
                         <i class="ti-search" aria-hidden="true"></i>
                       </a>
                     </li>
-
-                    <li class="nav-item">
-                      <a href="#" class="icons">
-                        <i class="ti-shopping-cart"></i>
-                      </a>
-                    </li>
-
-                    <li class="nav-item">
-                      <a href="#" class="icons">
-                        <i class="ti-user" aria-hidden="true"></i>
-                      </a>
-                    </li>
-
                     <li class="nav-item">
                       <a href="#" class="icons">
                         <i class="ti-heart" aria-hidden="true"></i>
                       </a>
+                    </li>
+                    <li class="nav-item">
+                      <div class="dropdown">
+                        <a href="#" class="icons dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="ti-user" aria-hidden="true"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                          <a class="dropdown-item" href="myProfile">My Profile</a>
+                          <a class="dropdown-item" href="#">Orders</a>
+                          <a class="dropdown-item" href="#">Wishlist</a>
+                          <a class="dropdown-item" href="#">Coupons</a>
+                          <a class="dropdown-item" href="#">Notifications</a>
+                          <div class="dropdown-divider"></div>
+                          <a class="dropdown-item" href="/logout">Logout</a>
+                        </div>
+                      </div>
                     </li>
                   </ul>
                 </div>
@@ -178,27 +143,31 @@
     <!--================Header Menu Area =================-->
 
     <!--================Home Banner Area =================-->
-    <section class="banner_area">
-      <div class="banner_inner d-flex align-items-center">
-        <div class="container">
-          <div
-            class="banner_content d-md-flex justify-content-between align-items-center"
-          >
-            <div class="mb-3 mb-md-0">
-              <h2>Cart</h2>
-              <p>Very us move be blessed multiply night</p>
-            </div>
-            <div class="page_link">
-              <a href="index.html">Home</a>
-              <a href="cart.html">Cart</a>
+    <% if(typeof banner !== 'undefined') { %>
+      <section class="banner_area">
+        <div class="banner_inner d-flex align-items-center" style="background-image: url('/productimg/<%= banner.cartPageBannerImage %>'); background-size: cover; background-position: center">
+          <div class="container">
+            <div class="banner_content d-md-flex justify-content-between align-items-center">
+              <div class="mb-3 mb-md-0">
+                <h2>Shop Category</h2>
+                <p>Very us move be blessed multiply night</p>
+              </div>
+              <div class="page_link">
+                <a href="/homepage">Home</a>
+                <a href="category.html">Shop</a>
+                <a href="category.html">Women Fashion</a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    <% } %>
     <!--================End Home Banner Area =================-->
 
     <!--================Cart Area =================-->
+    <% if (typeof message !== 'undefined' ) { %>
+      <h3 id="alerMessageArea" class="alert alert-warning" style="text-align: center;"><%= message %></h3>
+    <% } %>
     <% if (typeof cart !== 'undefined' && typeof products !== 'undefined') { %>
       <form id="cartForm" action="/updateCart" method="post">
         <section class="cart_area">
@@ -284,6 +253,9 @@
                                 '<% }) %>'
                                 var subtotalElement = document.getElementById('subtotal');
                                 subtotalElement.innerText = '$' + updatedSubtotal.toFixed(2);
+
+                                var subTotalInput = document.getElementById('subTotalInput');
+                                subTotalInput.value = updatedSubtotal.toFixed(2);
                               }
                             </script>
                           </div>
@@ -304,9 +276,9 @@
                       <td style="border: none;"></td>
                       <td style="border: none;">
                         <div class="cupon_text">
-                          <input type="text" placeholder="Coupon Code" />
-                          <a class="main_btn" href="#">Apply</a>
-                          <a class="gray_btn" href="#">Close Coupon</a>
+                          <input id="couponCode" name="couponCode" type="text" placeholder="Coupon Code" />
+                          <button class="main_btn" onclick="couponApply()">Apply</button>
+                          <button class="gray_btn">Close Coupon</button>
                         </div>
                       </td>
                     </tr>
@@ -317,6 +289,7 @@
                         <h5>Subtotal</h5>
                       </td>
                       <td style="border: none;">
+                        <input type="hidden" name="subTotal" id="subTotalinput" value="<%= initialSubtotal.toFixed(2) %>" >
                         <h5 id="subtotal">$<%= initialSubtotal.toFixed(2) %></h5>
                       </td>
                     </tr>
@@ -327,7 +300,7 @@
                       <td style="border: none;">
                         <div class="checkout_btn_inner">
                           <a class="gray_btn" href="/shop">Continue Shopping</a>
-                          <a class="main_btn" href="/checkoutPage">Proceed to checkout</a>
+                          <a onclick="loadCheckoutPage()" class="main_btn" href="#">Proceed to checkout</a>
                         </div>
                       </td>
                     </tr>
@@ -447,6 +420,27 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
         form.submit();
       }
 
+      function couponApply(){
+
+        console.log('coupon apply fn is called');
+        const form  = document.getElementById('cartForm');
+
+        form.action = "/applyCoupon";
+        form.submit();
+      }
+
+      function loadCheckoutPage(){
+        const form  = document.getElementById('cartForm');
+        form.action = "/proceedToCheckout";
+        form.submit();
+      }
+
+    </script>
+    <script>
+      const alertMessage  = document.getElementById('alertMessageArea');
+      if(alertMessage.textContent === ""){
+        alertMessage.style.display = 'none';
+      }
     </script>
     
 <%- include('../layouts/footer.ejs') -%>

@@ -4,13 +4,31 @@ const bcrypt     =  require('bcrypt');
 
 const bodyParser = require('body-parser');
 
-const session = require('express-session');
-
 const Product = require('../models/productModel');
 
-const mongoose  = require('mongoose');
-
 const Cart      = require('../models/cartModel');
+
+const Order     = require('../models/orderModel');
+
+const Coupon    = require('../models/couponModel');
+
+const Banner    = require('../models/bannerModel');
+
+const Category  = require('../models/categoryModel');
+
+const Razorpay  = require('razorpay');
+
+const dotenv    = require('dotenv');
+
+dotenv.config();
+
+const { RAZORPAY_KEY_ID, RAZORPAY_SECRET_KEY }  = process.env;
+
+const razorpayInstance  = new Razorpay({
+  key_id:RAZORPAY_KEY_ID,
+  key_secret:RAZORPAY_SECRET_KEY
+})
+
 
 const securePassword  = async(password)=>{
 
@@ -78,7 +96,6 @@ const loadLogin = async(req,res)=>{
   try {
     
     res.render('login',{message:''});
-    console.log("2");
 
   } catch (error) {
     console.log(error.message);
@@ -158,9 +175,6 @@ const insertUser  = async(req,res)=>{
     console.log('inserting');
     const sPassword = await securePassword(storedPassword);
 
-    console.log(storedOtp);
-    console.log(enteredNumber);
-
 
     if(enteredNumber === storedOtp){
       const user  = new User({
@@ -190,18 +204,20 @@ const verifyLogin = async(req,res)=>{
     const {emailOrPhone,password} = req.body;
     
     const userData  = await User.findOne({email:emailOrPhone});
-    console.log(userData);
     const secur = await securePassword(password);
-    console.log(secur);
 
     if(userData){
       
       const passwordMatch = await bcrypt.compare(password,userData.password);
       if(passwordMatch){
 
-        req.session.user_id = userData._id;
-        res.redirect('/homepage');
-        console.log(req.session.user_id);
+        if(userData.active !== 'blocked'){
+          req.session.user_id = userData._id;
+          res.redirect('/homepage');
+        }
+        else{
+          res.render('login',{message:"you are currently blocked. Try again later."});
+        }
       }
       else{
         res.render('login',{message:"incorrect credentials"});
@@ -235,9 +251,7 @@ const forgotPassword  = async(req,res)=>{
   try {
     
     const { email:enteredMail } = req.body;
-    console.log(enteredMail);
     const userData  = await User.findOne({email:enteredMail});
-    console.log(userData);
 
     if(userData){
       req.session.enteredMail = enteredMail;
@@ -272,7 +286,7 @@ const sendMail = async(email,name)=>{
       from:'vetkot pvt ltd',
       to:email,
       subject:"Password reset link",
-      html: `<p> Hi ${name}, for resetting password click <a href="http://127.0.0.1:7001/resetPassword?email=${email}">here</a></p>`
+      html: `<p> Hi ${name}, for resetting password click <a href="http://127.0.0.1:7000/resetPassword?email=${email}">here</a></p>`
     }
 
     transporter.sendMail(mailOption,(error,info)=>{
@@ -308,14 +322,10 @@ const resetPasswordbyForgot = async(req,res)=>{
   try {
     
     const email = req.session.email;
-    console.log(email);
     const { password:newPassword } = req.body;
-    console.log(newPassword);
     const sPassword = await securePassword(newPassword);
-    console.log(sPassword);
 
     const updatedData = await User.updateOne({email:email},{$set:{password:sPassword}});
-    console.log(updatedData);
     req.session.destroy();
     if(updatedData.modifiedCount === 1){
       res.redirect('/');
@@ -334,9 +344,16 @@ const resetPasswordbyForgot = async(req,res)=>{
 const loadHome  = async(req,res)=>{
 
   try {
-    console.log('executing')
-    res.render('homepage');
-    console.log("4");
+    
+    const userID  = req.session.user_id;
+    const user    = await User.findById({_id:userID});
+    const cart    = await Cart.findOne({userID:userID});
+    if(user.active !== 'blocked'){
+      res.render('homepage',{cart:cart});
+    }
+    else{
+      res.redirect('/');
+    }
 
   } catch (error) {
     console.log(error.message);
@@ -348,7 +365,6 @@ const logout  = async(req,res)=>{
   try {
     req.session.destroy();
     res.redirect('/');
-    console.log(req.session)
 
   } catch (error) {
     console.log(error.message);
@@ -360,11 +376,19 @@ const loadShop  = async(req,res)=>{
 
   try {
     
+    delete req.session.productID;
+    const product = await Product.find();
+    const banner  = await Banner.findOne();
+    const category= await Category.find();
+
     const userID  = req.session.user_id;
     const user    = await User.findById({_id:userID});
-    const product = await Product.find();
-    res.render('shop',{products:product,user:user});
-    console.log("shop loading");
+    if(user.active !== 'blocked'){
+      res.render('shop',{banner:banner,products:product,user:user,categories:category});
+    }
+    else{
+      res.redirect('/');
+    }
 
   } catch (error) {
     console.log(error.message);
@@ -373,14 +397,77 @@ const loadShop  = async(req,res)=>{
 }
 
 const myProfileLoad = async(req,res)=>{
-  console.log('profile loading');
 
   try {
     
     const userID = req.session.user_id;
-    console.log(userID);
     const user = await User.findById({_id:userID});
-    res.render('myProfile',{user:user});
+    const orders = await Order.find({userId:userID});
+
+    if(user.active !== 'blocked'){
+      res.render('myProfile',{user:user,orders:orders});
+    }
+    else{
+      res.redirect('/');
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const loadChangePassword  = async(req,res)=>{
+
+  try {
+    
+    res.render('changePassword');
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const changePassword  = async(req,res)=>{
+
+  try {
+    
+    const { password }  = req.body;
+    const userId  = req.session.user_id;
+    const user  = await User.findOne({_id:userId});
+    const passwordMatch = await bcrypt.compare(password,user.password);
+
+    if(passwordMatch){
+      res.render('newPassword');
+    }
+    else{
+      res.render('changePassword',{message:'incorrect password. please try again.'});
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const newPassword = async(req,res)=>{
+  console.log('changing...');
+
+  try {
+    
+    const userId  = req.session.user_id;
+    const {password}  = req.body;
+    const user  = await User.findOne({_id:userId});
+    if(user){
+      const userData  = await User.updateOne({
+        $set:{password:password}
+      });
+
+      if(userData.modifiedCount===1){
+        res.redirect('/myProfile');
+      }
+    }
 
   } catch (error) {
     console.log(error.message);
@@ -394,7 +481,6 @@ const addAddress  = async(req,res)=>{
     
     const{ userName,houseName,postOffice,landmark,district,state,country,pin,contactNumber } = req.body;
     const userID  = req.session.user_id;
-    console.log(contactNumber);
 
     const user  = await User.findById({_id:userID});
 
@@ -490,15 +576,12 @@ const deleteAddress = async (req, res) => {
     const user = await User.findById({ _id: userID });
     const { makeDefault } = req.body;
     const formattedDate = new Date(Date.parse(makeDefault));
-    console.log(formattedDate);
 
     const index = user.address.reduce((index, currentAddress, currentIndex, addresses) => {
       const currentMakeDefault = currentAddress.makeDefault || 0;
-      console.log(currentAddress.makeDefault);
 
       return currentMakeDefault.toISOString().substring(0,19) === formattedDate.toISOString().substring(0,19) ? currentIndex : index;
     }, -1);
-    console.log(index);
 
     if (index !== -1) {
 
@@ -526,7 +609,6 @@ console.log('making default');
     const user = await User.findById({ _id: userID });
     const { makeDefault } = req.body;
     const formattedDate = new Date(Date.parse(makeDefault));
-    console.log(formattedDate);
 
     const index = user.address.reduce((index,currentAddress,currentIndex,addresses)=>{
 
@@ -558,8 +640,6 @@ const productDetails  = async(req,res)=>{
     const { productID } = req.body;
 
     req.session.productID = productID;
-
-    console.log(req.session.productID);
     
     res.redirect('/loadProductDetails');
 
@@ -575,22 +655,25 @@ const loadProductDetails  = async(req,res)=>{
     
     const productID = req.session.productID;
     const userID    = req.session.user_id;
-    console.log(productID);
+    const user  = await User.findById({_id: userID});
+    const banner  = await Banner.findOne();
 
     const product = await Product.findOne({_id:productID});
     const cart    = await Cart.findOne({userID:userID})
 
-    if(product){
+    if(user.active !== 'blocked'){
+    
+      if(product){
 
-      res.header('Cache-Control','no-store , no-cache , must-revalidate');
-      res.render('productDetails',{product:product,cart:cart});
-      delete req.session.productID;
-      
+        res.header('Cache-Control','no-store , no-cache , must-revalidate');
+        res.render('productDetails',{banner:banner,product:product,cart:cart});
+        delete req.session.productID;
+        
+      }
+      else{
+        console.log('product not found');
+      }
     }
-    else{
-      console.log('product not found');
-    }
-
   } catch (error) {
     console.log(error.message);
   }
@@ -603,47 +686,53 @@ const addToCart = async(req,res)=>{
     
     const { productID,quantity } = req.body;
     const userID  = req.session.user_id;
+    const user = await User.findById({_id:userID});
     req.session.productID = productID;
 
     const CartFound = await Cart.findOne({userID:userID});
 
-    if(!CartFound){
+    if(user.active !== 'blocked'){
+      if(!CartFound){
 
-      const cart  = new Cart({
-        userID:userID,
-        items:[
-          {productId:productID,
-          quantity:parseInt(quantity)}
-        ]
-      });
-
-      cart.save();
-      res.redirect('/loadProductDetails');
-
-    }
-    else{
-
-      const cart  = await Cart.findOne({userID:userID});
-
-      const productIds  = cart.items.map(item=>item.productId);
-
-      const productExist  = productIds.includes(productID);
-
-      if(productExist){
-
-        const existingItem  = cart.items.find((item)=>item.productId === productID);
-        existingItem.quantity += parseInt(quantity);
-        await cart.save();
+        const cart  = new Cart({
+          userID:userID,
+          items:[
+            {productId:productID,
+            quantity:parseInt(quantity)}
+          ]
+        });
+  
+        cart.save();
         res.redirect('/loadProductDetails');
-
+  
       }
       else{
-
-        cart.items.push({productId:productID,quantity:parseInt(quantity)});
-        await cart.save();
-        res.redirect('/loadProductDetails');
-
-      }
+  
+        const cart  = await Cart.findOne({userID:userID});
+  
+        const productIds  = cart.items.map(item=>item.productId);
+  
+        const productExist  = productIds.includes(productID);
+  
+        if(productExist){
+  
+          const existingItem  = cart.items.find((item)=>item.productId === productID);
+          existingItem.quantity += parseInt(quantity);
+          await cart.save();
+          res.redirect('/loadProductDetails');
+  
+        }
+        else{
+  
+          cart.items.push({productId:productID,quantity:parseInt(quantity)});
+          await cart.save();
+          res.redirect('/loadProductDetails');
+  
+        }
+      } 
+    }
+    else{
+      res.redirect('/');
     }
 
   } catch (error) {
@@ -658,18 +747,33 @@ const loadCartPage  = async(req,res)=>{
     
     const userID  = req.session.user_id;
     const userCart    = await Cart.findOne({userID:userID});
+    const banner      = await Banner.findOne();
 
     const productIds  = userCart.items.map(item=>item.productId);
 
     const products    = await Product.find({_id:{$in:productIds}});
+    const user = await User.findById({_id:userID});
 
     const initialSubtotal = userCart.items.reduce((total, item) => {
       const product = products.find(p => p._id.toString() === item.productId.toString());
       return total + (product.saleprice * item.quantity);
     }, 0);
 
+    if(user.active !== 'blocked'){
 
-    res.render('cartPage',{products,cart:userCart,initialSubtotal});
+      if(userCart.items.length !== 0){
+
+        res.render('cartPage',{products,cart:userCart,initialSubtotal,message:"",banner:banner});
+
+      }
+      else{
+        res.render('cartPage',{message:"Cart is empty. Add products",banner:banner});
+      }
+      
+    }
+    else{
+      res.redirect('/');
+    }
 
   } catch (error) {
     console.log(error.message);
@@ -723,6 +827,51 @@ const updateCart  = async(req,res)=>{
 
 }
 
+const applyCoupon = async(req,res)=>{
+
+  console.log('coupon applying');
+  try {
+    
+    const { couponCode } = req.body;
+    const validCoupon = await Coupon.findOne({code:couponCode});
+    const userID  = req.session.user_id;
+    const userCart    = await Cart.findOne({userID:userID});
+
+    const productIds  = userCart.items.map(item=>item.productId);
+    const banner      = await Banner.findOne();
+
+    const products    = await Product.find({_id:{$in:productIds}});
+    const user = await User.findById({_id:userID});
+
+    const initialSubtotal = userCart.items.reduce((total, item) => {
+      const product = products.find(p => p._id.toString() === item.productId.toString());
+      return total + (product.saleprice * item.quantity);
+    }, 0);
+    req.session.initialSubtotal = initialSubtotal;
+    const subTotal  = initialSubtotal-(initialSubtotal*(validCoupon.discountValue/100));
+
+    if(user.active !== 'blocked'){
+
+      if(userCart.items.length !== 0){
+
+        res.render('cartPage',{products,cart:userCart,initialSubtotal:subTotal,message:"",banner:banner});
+
+      }
+      else{
+        res.render('cartPage',{message:"Cart is empty. Add products",banner:banner});
+      }
+      
+    }
+    else{
+      res.redirect('/');
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
 
 const deleteFromCart  = async(req,res)=>{
   console.log('item deleting..');
@@ -730,7 +879,6 @@ const deleteFromCart  = async(req,res)=>{
   try {
 
     const { deleteProductId } = req.body;
-    console.log(deleteProductId);
 
     const userID    = req.session.user_id;
     const userCart  = await Cart.findOne({userID:userID});
@@ -753,11 +901,30 @@ const deleteFromCart  = async(req,res)=>{
 
 }
 
-const proceedToCheckout = async(req,res)=>{
+const proceedToCheckout  = async(req,res)=>{
+  console.log('loading proceed to checkout');
 
   try {
-    
-    res.render('checkoutPage');
+
+    const { subTotal }  = req.body;
+    const banner  = await Banner.findOne();
+    console.log(subTotal);
+    const userID  = req.session.user_id;
+    const user    = await User.findById({_id:userID});
+    const userCart  = await Cart.findOne({userID:userID});
+    console.log(1);
+
+    const productIds  = userCart.items.map((item)=>item.productId);
+    const products     = await Product.find({_id:{$in:productIds}});
+    const discount  = parseFloat(subTotal)- parseFloat(req.session.initialSubtotal);
+    console.log(2);
+
+    if(user.active !== 'blocked'){
+      res.render('checkoutPage',{cart:userCart,products:products,subTotal:subTotal,user:user,discount:discount,banner:banner});
+    }
+    else{
+      res.redirect('/');
+    }
 
   } catch (error) {
     console.log(error.message);
@@ -767,6 +934,217 @@ const proceedToCheckout = async(req,res)=>{
 
 
 
+const confirmOrder = async (req, res) => {
+  console.log('order saving...');
+
+  try {
+    const userId = req.session.user_id;
+    const user    = await User.findById({_id:userId});
+    const { userName, subTotal, paymentOption } = req.body;
+
+    const orderItems = [];
+
+    // Extract quantities and totals from request body
+    for (let key in req.body) {
+      if (key.startsWith('quantity_')) {
+        const productId = key.replace('quantity_', '');
+        const quantity = parseInt(req.body[key], 10);
+
+        // Find the latest product details using productId
+        const product = await Product.findById(productId);
+
+        if (product) {
+          orderItems.push({
+            productId: productId,
+            quantity: quantity,
+            price: product.saleprice,
+            total: quantity * product.saleprice,
+            title: product.title, // Add the product title
+          });
+        }
+      }
+    }
+
+    const latestOrder = await Order.findOne().sort({ createdAt: -1 });
+    let orderCount = 1;
+    if (latestOrder) {
+      orderCount = latestOrder.orderCount + 1;
+    }
+    const orderId = '#' + orderCount.toString().padStart(10, '0');
+    req.session.orderId = orderId;
+
+    const order = new Order({
+      userId: userId,
+      orderId: orderId,
+      userName: userName,
+      paymentStatus: paymentOption,
+      items: orderItems,
+      subtotal: parseFloat(subTotal),
+      orderCount: orderCount,
+    });
+
+    const newOrder = await order.save();
+
+    if (newOrder) {
+      console.log('order created');
+
+      // Fetch the latest product details before creating Razorpay orders
+      const razorpayOrders = await Promise.all(orderItems.map(async (item) => {
+        const razorpayOrder = await razorpayInstance.orders.create({
+          amount: item.total * 100, // amount in paise
+          currency: 'INR',
+          receipt: `${orderId}-${item.productId}`,
+        });
+
+        return {
+          order_id: razorpayOrder.id,
+          amount: item.total,
+          product: {
+            title: item.title,
+            // Add other product details if needed
+          },
+        };
+      }));
+
+      // Return details for each Razorpay order
+      res.status(200).json({
+        key_id: RAZORPAY_KEY_ID,
+        success: true,
+        orders: razorpayOrders,
+        contact:user.address[0].contactNumber,
+        email:user.email
+      });
+    } else {
+      res.status(400).json({ success: false, msg: 'Order not confirmed' });
+    }
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).json({ success: false, msg: 'Error confirming order' });
+  }
+};
+
+const updateOrderPaymentSuccess = async(req,res)=>{
+
+  console.log("successing");
+  try {
+
+    const orderId = req.session.orderId;
+    console.log(orderId);
+    // Update the order payment status to 'success' in the database
+    const updatedOrder = await Order.updateOne({orderId:orderId},{$set:{paymentStatus:"success"}});
+    res.json({ success: true, updatedOrder });
+    res.session.orderId.delete();
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const updateOrderPaymentFailure = async(req,res)=>{
+
+  console.log("failing");
+  try {
+    const orderId = req.session.orderId;
+    // Update the order payment status to 'failure' in the database
+    const updatedOrder = await Order.updateOne({orderId:orderId},{$set:{paymentStatus:"failed"}});
+    res.json({ success: true, updatedOrder });
+    delete req.session.orderId;
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, msg: 'Error updating order payment status' });
+  }
+
+}
+
+
+
+
+const orderDetails  = async(req,res)=>{
+
+  try {
+    
+    const { orderId } = req.body;
+    const order = await Order.findOne({orderId:orderId});
+    const productIds  = order.items.flat().map(item=>item.productId);
+    const products  = await Product.find({_id:{$in:productIds}});
+    console.log(products);
+    if(order){
+      res.render('orderDetails',{order:order,products:products});
+    }
+    else{
+      res.redirect('/myProfile');
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const cancelOrder = async(req,res)=>{
+  console.log('order deleting...');
+
+  try {
+    
+    const { orderId } = req.body;
+    const order = await Order.findOne({orderId:orderId});
+    
+    if(order){
+
+      await order.deleteOne({orderId:orderId});
+      setTimeout(()=>{
+        res.redirect('/shop');
+      },2000)
+    }
+
+  } catch (error) {
+    console.log(error.message);
+  }
+
+}
+
+const searchProduct = async (req, res) => {
+  const { searchQuery } = req.body;
+
+  try {
+    const products = await Product.find({
+      title: { $regex: new RegExp(searchQuery, 'i') },
+    });
+
+    const banner = await Banner.findOne();
+    const userID = req.session.user_id;
+    const user = await User.findById({ _id: userID });
+
+    if (user.active !== 'blocked') {
+      res.render('shop', { banner: banner, products: products, user: user });
+    } else {
+      res.redirect('/');
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+const applyPriceFilter = async (req, res) => {
+  console.log('price filter loading');
+  const { minPrice, maxPrice } = req.body;
+  const category = await Category.find();
+  console.log(minPrice);
+  console.log(maxPrice);
+
+  try {
+    // Assuming your Product model has a 'saleprice' field
+    const products = await Product.find({
+      saleprice: { $gte: minPrice, $lte: maxPrice },
+    });
+    console.log(products);
+
+    res.json({ success: true, products, categories: category });
+  } catch (error) {
+    console.error('Error applying price filter:', error);
+    res.json({ success: false, error: error.message });
+  }
+}
 
 module.exports  = {
   loadLogin,
@@ -784,6 +1162,9 @@ module.exports  = {
   resetPassword,
   resetPasswordbyForgot,
   myProfileLoad,
+  loadChangePassword,
+  changePassword,
+  newPassword,
   addAddress,
   editAddress,
   deleteAddress,
@@ -793,6 +1174,14 @@ module.exports  = {
   addToCart,
   loadCartPage,
   updateCart,
+  applyCoupon,
   deleteFromCart,
   proceedToCheckout,
+  updateOrderPaymentSuccess,
+  updateOrderPaymentFailure,
+  confirmOrder,
+  orderDetails,
+  cancelOrder,
+  searchProduct,
+  applyPriceFilter
 }

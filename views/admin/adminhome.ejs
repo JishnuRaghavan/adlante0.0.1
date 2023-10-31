@@ -1,6 +1,6 @@
 <%- include('../adminlayouts/header.ejs') -%>
 
-    <main id="main-wrapper" class="main-wrapper">
+  <main id="main-wrapper" class="main-wrapper">
     <div class="header">
       <!-- navbar -->
       <div class="navbar-custom navbar navbar-expand-lg">
@@ -127,29 +127,51 @@
           data-bs-parent="#sideNavbar">
           <ul class="nav flex-column">
             <li class="nav-item">
-              <a class="nav-link has-arrow "
-                href="ecommerce-products.html">
-              Products
+              <a class="nav-link has-arrow active" href="/admin/productList">
+                Product List
               </a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link has-arrow "
-                href="ecommerce-products-details.html">
-              Product Detail
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link has-arrow "
-                href="/admin/productEdit">
-              Add Product
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link has-arrow "
-                href="/admin/ecommerce-customer">
-              Customer
-              </a>
-            </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/productEdit">
+                Add Product
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow" href="/admin/categoryList">
+                  Category List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow" href="/admin/orderList">
+                  Order List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/ecommerce-customer">
+                Customer
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/addCoupon">
+                Coupon
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/CouponList">
+                Coupon List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/bannerManagement">
+                banner management
+                </a>
+              </li>
+            </ul>
           </ul>
         </div>
       </li>

@@ -168,6 +168,22 @@
                         <i class="ti-heart" aria-hidden="true"></i>
                       </a>
                     </li>
+                    <li class="nav-item">
+                      <div class="dropdown">
+                        <a href="#" class="icons dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          <i class="ti-user" aria-hidden="true"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                          <a class="dropdown-item" href="myProfile">My Profile</a>
+                          <a class="dropdown-item" href="#">Orders</a>
+                          <a class="dropdown-item" href="#">Wishlist</a>
+                          <a class="dropdown-item" href="#">Coupons</a>
+                          <a class="dropdown-item" href="#">Notifications</a>
+                          <div class="dropdown-divider"></div>
+                          <a class="dropdown-item" href="/logout">Logout</a>
+                        </div>
+                      </div>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -179,321 +195,147 @@
     <!--================Header Menu Area =================-->
 
     <!--================Home Banner Area =================-->
-    <section class="banner_area">
-      <div class="banner_inner d-flex align-items-center">
-        <div class="container">
-          <div
-            class="banner_content d-md-flex justify-content-between align-items-center"
-          >
-            <div class="mb-3 mb-md-0">
-              <h2>Product Checkout</h2>
-              <p>Very us move be blessed multiply night</p>
-            </div>
-            <div class="page_link">
-              <a href="index.html">Home</a>
-              <a href="checkout.html">Product Checkout</a>
+    <% if(typeof banner !== 'undefined') { %>
+      <section class="banner_area">
+        <div class="banner_inner d-flex align-items-center" style="background-image: url('/productimg/<%= banner.checkoutBannerImage %>'); background-size: cover; background-position: center">
+          <div class="container">
+            <div class="banner_content d-md-flex justify-content-between align-items-center">
+              <div class="mb-3 mb-md-0">
+                <h2>Shop Category</h2>
+                <p>Very us move be blessed multiply night</p>
+              </div>
+              <div class="page_link">
+                <a href="/homepage">Home</a>
+                <a href="category.html">Shop</a>
+                <a href="category.html">Women Fashion</a>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    <% } %>
     <!--================End Home Banner Area =================-->
 
     <!--================Checkout Area =================-->
-    <section class="checkout_area section_gap">
-      <div class="container">
-        <div class="returning_customer">
-          <div class="check_title">
-            <h2>
-              Returning Customer?
-              <a href="#">Click here to login</a>
-            </h2>
-          </div>
-          <p>
-            If you have shopped with us before, please enter your details in the
-            boxes below. If you are a new customer, please proceed to the
-            Billing & Shipping section.
-          </p>
-          <form
-            class="row contact_form"
-            action="#"
-            method="post"
-            novalidate="novalidate"
-          >
-            <div class="col-md-6 form-group p_star">
-              <input
-                type="text"
-                class="form-control"
-                id="name"
-                name="name"
-                value=" "
-              />
-              <span
-                class="placeholder"
-                data-placeholder="Username or Email"
-              ></span>
-            </div>
-            <div class="col-md-6 form-group p_star">
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                name="password"
-                value=""
-              />
-              <span class="placeholder" data-placeholder="Password"></span>
-            </div>
-            <div class="col-md-12 form-group">
-              <button type="submit" value="submit" class="btn submit_btn">
-                Send Message
-              </button>
-              <div class="creat_account">
-                <input type="checkbox" id="f-option" name="selector" />
-                <label for="f-option">Remember me</label>
-              </div>
-              <a class="lost_pass" href="#">Lost your password?</a>
-            </div>
-          </form>
-        </div>
-        <div class="cupon_area">
-          <div class="check_title">
-            <h2>
-              Have a coupon?
-              <a href="#">Click here to enter your code</a>
-            </h2>
-          </div>
-          <input type="text" placeholder="Enter coupon code" />
-          <a class="tp_btn" href="#">Apply Coupon</a>
-        </div>
-        <div class="billing_details">
-          <div class="row">
-            <div class="col-lg-8">
-              <h3>Billing Details</h3>
-              <form
-                class="row contact_form"
-                action="#"
-                method="post"
-                novalidate="novalidate"
-              >
-                <div class="col-md-6 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="first"
-                    name="name"
-                  />
-                  <span
-                    class="placeholder"
-                    data-placeholder="First name"
-                  ></span>
+    <% if(typeof products !== 'undefined' && typeof cart !== 'undefined' && typeof subTotal !== 'undefined') { %>
+      <form class="pay-form">
+        <section class="checkout_area section_gap">
+          <div class="container">              
+            <div class="billing_details">
+              <div class="row">
+                <div class="col-lg-8">
+                  <h3>Billing Details</h3>
+                  <address>
+                    <div>
+                      <div>
+                          <div id="primaryAddress">
+                            <% if (typeof user !== 'undefined' && user.address.length > 0) { %>
+                              <div style="border: double rgb(67, 214, 224);">
+                                <div class="col-3">
+                                  Address:<br>
+                                </div>
+                                <div class="d-flex flex-direction-horizontal justify-content-between">
+                                  <% const latestAddress = user.address.length > 0
+                                  ? user.address.reduce((prev, current) => {
+                                      return (current.makeDefault > prev.makeDefault) ? current : prev;
+                                    })
+                                  : null; %>
+                                  <div class="col-3">
+                                    <input type="hidden" value="<%=latestAddress.userName %>" name="userName">
+                                    <p><strong><%= latestAddress.userName %></strong></p>
+                                    <input type="hidden" value="<%=latestAddress.houseName %>" name="houseName">
+                                    <p><strong>House Name :</strong><%= latestAddress.houseName %></p>
+                                    <input type="hidden" value="<%= latestAddress.landmark %>" name="landmark">
+                                    <p><strong>Landmark   :</strong><%= latestAddress.landmark %></p>
+                                    <input type="hidden" value="<%= latestAddress.postOffice %>" name="postOffice">
+                                    <p><strong>postOffice :</strong><%= latestAddress.postOffice %></p>
+                                    <input type="hidden" value="<%= latestAddress.district %>" name="district">
+                                    <p><strong>District   :</strong><%= latestAddress.district %></p>
+                                  </div>
+                                  <div class="col-3">
+                                    <input type="hidden" value="<%= latestAddress.state%>" name="state">
+                                    <p><strong>State      :</strong><%= latestAddress.state %></p>
+                                    <input type="hidden" value="<%= latestAddress.country %>" name="country" >
+                                    <p><strong>Country    :</strong><%= latestAddress.country %></p>
+                                    <input type="hidden" value="<%= latestAddress.pin %>" name="pin">
+                                    <p><strong>PIN        :</strong><%= latestAddress.pin %></p>
+                                    <input type="hidden" value="<%= latestAddress.contactNumber %>" name="contactNumber">
+                                    <p><strong>Contact No.:</strong><%= latestAddress.contactNumber %></p>
+                                  </div>
+                                </div>
+                              </div>
+                            <% } else { %>
+                              <p>No address available</p>
+                            <% } %>
+                          </div>
+                      </div>
+                    </div>
+                  </address>
                 </div>
-                <div class="col-md-6 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="last"
-                    name="name"
-                  />
-                  <span class="placeholder" data-placeholder="Last name"></span>
-                </div>
-                <div class="col-md-12 form-group">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="company"
-                    name="company"
-                    placeholder="Company name"
-                  />
-                </div>
-                <div class="col-md-6 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="number"
-                    name="number"
-                  />
-                  <span
-                    class="placeholder"
-                    data-placeholder="Phone number"
-                  ></span>
-                </div>
-                <div class="col-md-6 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="email"
-                    name="compemailany"
-                  />
-                  <span
-                    class="placeholder"
-                    data-placeholder="Email Address"
-                  ></span>
-                </div>
-                <div class="col-md-12 form-group p_star">
-                  <select class="country_select">
-                    <option value="1">Country</option>
-                    <option value="2">Country</option>
-                    <option value="4">Country</option>
-                  </select>
-                </div>
-                <div class="col-md-12 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="add1"
-                    name="add1"
-                  />
-                  <span
-                    class="placeholder"
-                    data-placeholder="Address line 01"
-                  ></span>
-                </div>
-                <div class="col-md-12 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="add2"
-                    name="add2"
-                  />
-                  <span
-                    class="placeholder"
-                    data-placeholder="Address line 02"
-                  ></span>
-                </div>
-                <div class="col-md-12 form-group p_star">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="city"
-                    name="city"
-                  />
-                  <span class="placeholder" data-placeholder="Town/City"></span>
-                </div>
-                <div class="col-md-12 form-group p_star">
-                  <select class="country_select">
-                    <option value="1">District</option>
-                    <option value="2">District</option>
-                    <option value="4">District</option>
-                  </select>
-                </div>
-                <div class="col-md-12 form-group">
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="zip"
-                    name="zip"
-                    placeholder="Postcode/ZIP"
-                  />
-                </div>
-                <div class="col-md-12 form-group">
-                  <div class="creat_account">
-                    <input type="checkbox" id="f-option2" name="selector" />
-                    <label for="f-option2">Create an account?</label>
+                <div class="col-lg-4">
+                  <div class="order_box">
+                    <h2>Your Order</h2>
+                    <ul class="list">
+                      <li>
+                        <a href="#"
+                          >Product
+                          <span>Total</span>
+                        </a>
+                      </li>
+                      <% cart.items.forEach((item)=> { %>
+                      <% const product  = products.find((product)=> product._id.toString() === item.productId.toString()) %>
+                      <li>
+                        <a href="#"
+                          ><%= product.title %>
+                          <input type="hidden" name="quantity_<%= product._id%>" value="<%= item.quantity %>">
+                          <span class="middle"><%= item.quantity %></span>
+                          <input type="hidden" name="total_<%= product._id %>" value="<%= product.saleprice * item.quantity %>">
+                          <span class="last"><%= product.saleprice * item.quantity %></span>
+                        </a>
+                      </li>
+                      <% }) %>
+                    <ul class="list list_2">
+                      <li>
+                        <a href="#"
+                          >Discount
+                          <span><%= discount %></span>
+                          <input type="hidden" name="subTotal" value="<%= parseInt(subTotal) %>">
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#"
+                          >Subtotal
+                          <span><%= subTotal %></span>
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#"
+                          >Shipping
+                          <span>Flat rate: $50.00</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#"
+                          >Total
+                          <span><%= parseInt(subTotal)+50 %></span>
+                          <input type="hidden" name="subTotal" value="<%= parseInt(subTotal)+50 %>">
+                        </a>
+                      </li>
+                    </ul>
+                    <div class="creat_account form-check">
+                      <input class="form-check-input" type="checkbox" id="f-option4" name="selector" />
+                      <label class="form-check-class" for="f-option4">I’ve read and accept the </label>
+                      <a href="#">terms & conditions*</a>
+                    </div>
+                    <button class="main_btn" type="submit">Proceed to Payment</button>
                   </div>
                 </div>
-                <div class="col-md-12 form-group">
-                  <div class="creat_account">
-                    <h3>Shipping Details</h3>
-                    <input type="checkbox" id="f-option3" name="selector" />
-                    <label for="f-option3">Ship to a different address?</label>
-                  </div>
-                  <textarea
-                    class="form-control"
-                    name="message"
-                    id="message"
-                    rows="1"
-                    placeholder="Order Notes"
-                  ></textarea>
-                </div>
-              </form>
-            </div>
-            <div class="col-lg-4">
-              <div class="order_box">
-                <h2>Your Order</h2>
-                <ul class="list">
-                  <li>
-                    <a href="#"
-                      >Product
-                      <span>Total</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#"
-                      >Fresh Blackberry
-                      <span class="middle">x 02</span>
-                      <span class="last">$720.00</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#"
-                      >Fresh Tomatoes
-                      <span class="middle">x 02</span>
-                      <span class="last">$720.00</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#"
-                      >Fresh Brocoli
-                      <span class="middle">x 02</span>
-                      <span class="last">$720.00</span>
-                    </a>
-                  </li>
-                </ul>
-                <ul class="list list_2">
-                  <li>
-                    <a href="#"
-                      >Subtotal
-                      <span>$2160.00</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#"
-                      >Shipping
-                      <span>Flat rate: $50.00</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#"
-                      >Total
-                      <span>$2210.00</span>
-                    </a>
-                  </li>
-                </ul>
-                <div class="payment_item">
-                  <div class="radion_btn">
-                    <input type="radio" id="f-option5" name="selector" />
-                    <label for="f-option5">Check payments</label>
-                    <div class="check"></div>
-                  </div>
-                  <p>
-                    Please send a check to Store Name, Store Street, Store Town,
-                    Store State / County, Store Postcode.
-                  </p>
-                </div>
-                <div class="payment_item active">
-                  <div class="radion_btn">
-                    <input type="radio" id="f-option6" name="selector" />
-                    <label for="f-option6">Paypal </label>
-                    <img src="img/product/single-product/card.jpg" alt="" />
-                    <div class="check"></div>
-                  </div>
-                  <p>
-                    Please send a check to Store Name, Store Street, Store Town,
-                    Store State / County, Store Postcode.
-                  </p>
-                </div>
-                <div class="creat_account">
-                  <input type="checkbox" id="f-option4" name="selector" />
-                  <label for="f-option4">I’ve read and accept the </label>
-                  <a href="#">terms & conditions*</a>
-                </div>
-                <a class="main_btn" href="#">Proceed to Paypal</a>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+        </section>
+      </form>
+    <% } %>
     <!--================End Checkout Area =================-->
 
     <!--================ start footer Area  =================-->
@@ -571,20 +413,126 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="js/jquery-3.2.1.min.js"></script>
-    <script src="js/popper.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/stellar.js"></script>
-    <script src="vendors/lightbox/simpleLightbox.min.js"></script>
-    <script src="vendors/nice-select/js/jquery.nice-select.min.js"></script>
-    <script src="vendors/isotope/imagesloaded.pkgd.min.js"></script>
-    <script src="vendors/isotope/isotope-min.js"></script>
-    <script src="vendors/owl-carousel/owl.carousel.min.js"></script>
-    <script src="js/jquery.ajaxchimp.min.js"></script>
-    <script src="js/mail-script.js"></script>
-    <script src="vendors/jquery-ui/jquery-ui.js"></script>
-    <script src="vendors/counter-up/jquery.waypoints.min.js"></script>
-    <script src="vendors/counter-up/jquery.counterup.js"></script>
-    <script src="js/theme.js"></script>
+    <script src="/js/jquery-3.2.1.min.js"></script>
+    <script src="/js/popper.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/stellar.js"></script>
+    <script src="/vendors/lightbox/simpleLightbox.min.js"></script>
+    <script src="/vendors/nice-select/js/jquery.nice-select.min.js"></script>
+    <script src="/vendors/isotope/imagesloaded.pkgd.min.js"></script>
+    <script src="/vendors/isotope/isotope-min.js"></script>
+    <script src="/vendors/owl-carousel/owl.carousel.min.js"></script>
+    <script src="/js/jquery.ajaxchimp.min.js"></script>
+    <script src="/js/mail-script.js"></script>
+    <script src="/vendors/jquery-ui/jquery-ui.js"></script>
+    <script src="/vendors/counter-up/jquery.waypoints.min.js"></script>
+    <script src="/vendors/counter-up/jquery.counterup.js"></script>
+    <script src="/theme.js"></script>
+    <script>
+      function orderConformation(){
+        alert('your order has been confirmed');
+      }
+    </script>
+    <!-- Inside index.html -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  $(document).ready(function () {
+    $('.pay-form').submit(function (e) {
+      e.preventDefault();
+
+      var formData = $(this).serialize();
+
+      $.ajax({
+        url: "/confirmOrder",
+        type: "POST",
+        data: formData,
+        success: function (res) {
+          console.log(res); // Log the response to the console
+          if (res.success) {
+            var options = {
+              "key": "" + res.key_id + "",
+              "amount": "" + res.subTotal + "",
+              "currency": "INR",
+              "name": "ADLANTE", // Change this to your company name
+              "description": "Order payment", // Change this to a suitable description
+              "image": "https://dummyimage.com/600x400/000/fff",
+              "order_id": "" + res.orders[0].order_id + "",
+              // In your client-side JavaScript
+
+              // Inside the Razorpay success handler
+              "handler": function (response) {
+                var orderId = res.orders[0].order_id;
+
+                // Check the response to determine success or failure
+                if (response.razorpay_payment_id) {
+                  // Payment successful
+                  $.ajax({
+                    url: "/updateOrderPaymentSuccess",
+                    type: "POST",
+                    data: { orderId: orderId },
+                    success: function (updateRes) {
+                      if (updateRes.success) {
+                        alert("Payment Succeeded");
+                        // Redirect or perform additional actions on success
+                        // window.open("/","_self")
+                      } else {
+                        alert(updateRes.msg);
+                      }
+                    },
+                    error: function () {
+                      alert("Error updating order payment status");
+                    }
+                  });
+                } else {
+                  // Payment failed
+                  $.ajax({
+                    url: "/updateOrderPaymentFailure",
+                    type: "POST",
+                    data: { orderId: orderId },
+                    success: function (updateRes) {
+                      if (updateRes.success) {
+                        alert("Payment Failed");
+                        // Redirect or perform additional actions on failure
+                      } else {
+                        alert(updateRes.msg);
+                      }
+                    },
+                    error: function () {
+                      alert("Error updating order payment status");
+                    }
+                  });
+                }
+              },
+
+              "prefill": {
+                "contact": "" + res.contact + "",
+                "name": "ADLANTE", // Change this to your company name
+                "email": "" + res.email + ""
+              },
+              "notes": {
+                "description": "Order payment for " + res.order_id
+              },
+              "theme": {
+                "color": "#2300a3"
+              }
+            };
+
+            var razorpayObject = new Razorpay(options);
+            razorpayObject.on('payment.failed', function (response) {
+              alert("Payment Failed");
+            });
+
+            // Open the Razorpay payment form
+            razorpayObject.open();
+          } else {
+            alert(res.msg);
+          }
+        }
+      });
+    });
+  });
+</script>
+
+
 
 <%- include('../layouts/footer.ejs')  -%>

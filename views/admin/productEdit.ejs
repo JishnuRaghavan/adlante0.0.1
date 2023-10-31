@@ -126,27 +126,48 @@
             data-bs-parent="#sideNavbar">
             <ul class="nav flex-column">
               <li class="nav-item">
-                <a class="nav-link has-arrow "
-                  href="ecommerce-products.html">
-                Products
+                <a class="nav-link has-arrow active" href="/admin/productList">
+                  Product List
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link has-arrow "
-                  href="">
-                Product Detail
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link has-arrow "
+                <a class="nav-link has-arrow"
                   href="/admin/productEdit">
                 Add Product
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link has-arrow  active "
+                <a class="nav-link has-arrow" href="/admin/categoryList">
+                  Category List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow" href="/admin/orderList">
+                  Order List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
                   href="/admin/ecommerce-customer">
                 Customer
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/addCoupon">
+                Coupon
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/CouponList">
+                Coupon List
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link has-arrow"
+                  href="/admin/bannerManagement">
+                banner management
                 </a>
               </li>
             </ul>
@@ -155,7 +176,6 @@
       </ul>
     </div>
   </div>
-  <!-- Page Content -->
   <div id="app-content">
     <!-- Container fluid -->
     <form action="/admin/addProduct" method="post" enctype="multipart/form-data">
@@ -172,79 +192,13 @@
           <div>
             <!-- row -->
             <div class="row">
-              <div class="col-lg-8 col-12">
-                <!-- card -->
-                <div class="card mb-4">
-                  <!-- card body -->
-                  <div class="card-body">
-                    <div>
-                      <!-- input -->
-                      <div class="mb-3">
-                        <label class="form-label">Product Title</label>
-                        <input type="text" class="form-control" placeholder="Enter Product Title" name="title" required>
-                      </div>
-                      <!-- input -->
-                      <div>
-                        <label class="form-label">Product Description</label>
-                        <input class="form-control pb-8" id="editor" name="description">
-                      </div>
-                      <!--input-->
-                      <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                          <label class="form-label">Product Brand</label>
-                          <a href="#!" class="btn-link fw-semi-bold">Add New</a>
-                        </div>
-                        <!-- select menu -->
-                        <select name="brand" class="form-select" aria-label="Default select example">
-                          <option selected>Nike</option>
-                          <option value="1">Adlante</option>
-                          <option value="2">Adidas</option>
-                          <option value="3">Lee Cooper</option>
-                          <option value="4">Fila</option>
-                          <option value="5">other</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- card -->
-                <div class="card mb-4">
-                  <!-- card body -->
-                  <div class="card-body">
-                    <div>
-                      <div class="mb-4">
-                        <!-- heading -->
-                        <h4 class="mb-4">Product Gallery</h4>
-                        <h5 class="mb-1">Product Image</h5>
-                        <p>Add Product main Image.</p>
-                        <!-- input -->
-                        <input name="defaultImage" type="file" class="form-control"  />
-                      </div>
-                      <div>
-                        <!-- heading -->
-                        <h5 class="mb-1">Product Gallery</h5>
-                        <p>Add Product Gallery Images.</p>
-                        <!-- input -->
-                        <form action="#" class="d-block dropzone border-dashed rounded-2">
-                          <div class="fallback">
-                            <input name="galleryImage" name="file"  type="file" multiple />
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
               <div class="col-lg-4 col-12">
                 <!-- card -->
                 <div class="card mb-4">
                   <!-- card body -->
                   <div class="card-body">
-                    <!-- input -->
-                    <div class="form-check form-switch mb-4">
-                      <label class="form-label" for="flexSwitchStock">No. of Stock</label>
-                      <input name="stock" class="form-control" type="number" id="flexSwitchStock" required>
-                    </div>
+                    <label class="form-label" for="flexSwitchStock">No. of Stock</label>
+                    <input name="stock" class="form-control" type="number" id="flexSwitchStock" required>
                     <!-- input -->
                     <div>
                       <!-- input -->
@@ -252,30 +206,18 @@
                         <label class="form-label" id="productSKU">Gender</label><br>
                         <div class="form-check form-check-inline">
                           <input name="gender" class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1"
-                            value="option1">
+                            value="Male">
                           <label class="form-check-label" for="inlineRadio1">Male</label>
                         </div>
                         <!-- input -->
                         <div class="form-check form-check-inline">
                           <input name="gender" class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2"
-                            value="option2">
+                            value="Female">
                           <label class="form-check-label" for="inlineRadio2">Female</label>
-                        </div>
-                        <!-- input -->
-                        <div class="form-check form-check-inline">
-                          <input name="gender" class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3"
-                            value="option2">
-                          <label class="form-check-label" for="inlineRadio3">Kids</label>
                         </div>
                       </div>
                       <!-- input category and subcategory -->
                       <label class="form-label" for="category">Category</label>
-                      <div class="input-group">
-                        <!-- Input field and Add Category button side by side initially -->
-                        <input class="form-control" type="text" id="categoryInput" placeholder="Enter Category">
-                        <button onclick="addCategory()" class="btn btn-primary btn-sm" id="addCategoryBtn">Add Category</button>
-                      </div>
-  
                       <div class="d-flex align-items-center mt-2">
                         <!-- Dropdown and Confirm button side by side -->
                         <select class="form-select" id="categorySelect" name="category">
@@ -286,23 +228,15 @@
                           <% } %>
                         </select>
                       </div>
-  
                       <label class="form-label" for="subcategory">Subcategory</label>
-  
-                      <div class="input-group">
-                        <!-- Input field and Add Subcategory button side by side initially -->
-                        <input class="form-control" type="text" id="subcategoryInput" placeholder="Enter Subcategory">
-                        <button onclick="addSubcategory()" class="btn btn-primary btn-sm" id="addSubcategoryBtn">Add Subcategory</button>
-                      </div>
-  
                       <div class="d-flex align-items-center mt-2">
                         <!-- Dropdown and Confirm button side by side -->
-                        <select onclick="subcategoryOptions()" class="form-select" id="subcategorySelect" name="subcategory">
+                        <select class="form-select" id="subcategorySelect" name="subcategory">
                           <% if (typeof categories !== 'undefined') { %>
-                            <% categories.forEach(function(category) { %>
+                            <% categories.forEach((category) => { %>
                               <% if (typeof category.subcategory !== 'undefined') { %>
-                                <% category.subcategory.forEach(function(subcategory) { %>
-                                  <option value="<%= subcategory.subcategory %>"><%= subcategory.subcategory %></option>
+                                <% category.subcategory.forEach((subcategory)=> { %>
+                                  <option value="<%= subcategory.name %>"><%= subcategory.name %></option>
                                 <% }); %>
                               <% } %>
                             <% }); %>
@@ -360,16 +294,80 @@
                           </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-8 col-12">
+                <!-- card -->
+                <div class="card mb-4">
+                  <!-- card body -->
+                  <div class="card-body">
+                    <div>
+                      <!-- input -->
+                      <div class="mb-3">
+                        <label class="form-label">Product Title</label>
+                        <input type="text" class="form-control" placeholder="Enter Product Title" name="title" required>
+                      </div>
+                      <!-- input -->
+                      <div>
+                        <label class="form-label">Product Description</label>
+                        <input class="form-control pb-8" name="description">
+                      </div>
+                      <!--input-->
+                      <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                          <label class="form-label">Product Brand</label>
+                          <a href="#!" class="btn-link fw-semi-bold">Add New</a>
+                        </div>
+                        <!-- select menu -->
+                        <select name="brand" class="form-select" aria-label="Default select example">
+                          <option selected>Nike</option>
+                          <option value="1">Adlante</option>
+                          <option value="2">Adidas</option>
+                          <option value="3">Lee Cooper</option>
+                          <option value="4">Fila</option>
+                          <option value="5">other</option>
+                        </select>
+                      </div>
                       <!--tag-->
                       <div class="mb-3">
                         <label class="form-label">Tags
                         </label>
-                        <input name='tags' value="" class="form-control w-100">
+                        <div class="form-control">
+                          <input name='tags' value="" class="form-control w-100">
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                
+                <!-- card -->
+                <div class="card mb-4">
+                  <!-- card body -->
+                  <div class="card-body">
+                    <div>
+                      <div class="mb-4">
+                        <!-- heading -->
+                        <h4 class="mb-4">Product Gallery</h4>
+                        <h5 class="mb-1">Product Image</h5>
+                        <p>Add Product main Image.</p>
+                        <!-- input -->
+                        <input name="defaultImage" type="file" class="form-control"  />
+                      </div>
+                      <div>
+                        <!-- heading -->
+                        <h5 class="mb-1">Product Gallery</h5>
+                        <p>Add Product Gallery Images.</p>
+                        <!-- input -->
+                        <form action="#" class="d-block dropzone border-dashed rounded-2">
+                          <div class="fallback">
+                            <input name="galleryImage" name="file"  type="file" multiple />
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <!-- card -->
                 <div class="card mb-4">
                   <!-- card body -->
@@ -410,14 +408,12 @@
     </form>
   </div>
 </main>
-<!-- Scripts -->
-<!-- dropzone -->
 <script src="/admin/libs/dropzone/dist/min/dropzone.min.js"></script>
 <!-- flatpickr -->
 <script src="/admin/libs/flatpickr/dist/flatpickr.min.js"></script>
 <!-- quill js -->
 <script src="/admin/libs/quill/dist/quill.min.js"></script>
-<script src="../assets/libs/%40yaireo/tagify/dist/tagify.min.js"></script>
+<script src="/admin/libs/%40yaireo/tagify/dist/tagify.min.js"></script>
 <!-- Libs JS -->
 <script src="/admin/libs/jquery/dist/jquery.min.js"></script>
 <script src="/admin/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -426,69 +422,9 @@
 <!-- Theme JS -->
 <script src="/admin/js/theme.min.js"></script>
 <script>
-
-function addCategory() {
-  const newCategory = categoryInput.value.trim();
-  if (newCategory !== "") {
-    // Add the new category to the client-side select element
-    const option = document.createElement("option");
-    option.value = newCategory;
-    option.textContent = newCategory;
-    categorySelect.appendChild(option);
-
-    // Clear the input field
-    categoryInput.value = "";
-
-    // Send a POST request to the server to save the new category
-    fetch("/admin/addCategory", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ maincategory: newCategory }),
-    })
-      .then((data) => {
-        // Handle any server response if needed
-        console.log(data);
-
-        // Dynamically update the categorySelect dropdown with the new category
-        // (Assuming that 'data' contains the updated category list)
-        updateDropdownOptions(categorySelect, data.categories);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+  if('<%= alertMessage %>' !== ""){
+    alert('product created successfully');
   }
-}
-
-function addSubcategory() {
-  const newCategory = categoryInput.value.trim();
-  const newSubcategory = subcategoryInput.value.trim();
-  const category  = document.getElementById('categorySelect').value;
-  if (newSubcategory !== "") {
-    // Add the new subcategory to the client-side select element
-    const option = document.createElement("option");
-    option.value = newSubcategory;
-    option.textContent = newSubcategory;
-    subcategorySelect.appendChild(option);
-
-    // Clear the input field
-    subcategoryInput.value = "";
-
-    // Send a POST request to the server to save the new subcategory
-    fetch("/admin/addSubCategory", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ subcategory: newSubcategory,maincategory:category }),
-    })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }
-}
-
 </script>
 
 <%- include('../adminlayouts/footer.ejs') -%>
